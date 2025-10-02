@@ -70,7 +70,7 @@ If you want to update components using the Shadcn CLI (e.g., `npx shadcn@latest 
 
 **Icons:** [Lucide Icons](https://lucide.dev/icons/), [Tabler Icons](https://tabler.io/icons) (Brand icons only)
 
-**Auth (partial):** [Clerk](https://go.clerk.com/GttUAaK)
+**Auth (partial):** [Supabase](https://supabase.com)
 
 ## Run Locally
 
@@ -106,7 +106,7 @@ For questions or sponsorship inquiries, feel free to reach out at [contact@satna
 
 ### Current Sponsor
 
-- [Clerk](https://go.clerk.com/GttUAaK) - for backing the implementation of Clerk in this project
+- [Supabase](https://supabase.com) - for backing the authentication example in this project
 
 ## Author
 

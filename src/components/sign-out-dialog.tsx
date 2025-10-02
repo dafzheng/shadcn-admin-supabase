@@ -1,5 +1,7 @@
 import { useNavigate, useLocation } from '@tanstack/react-router'
+import { toast } from 'sonner'
 import { useAuthStore } from '@/stores/auth-store'
+import { useSupabaseAuth } from '@/features/auth/supabase/provider'
 import { ConfirmDialog } from '@/components/confirm-dialog'
 
 interface SignOutDialogProps {
@@ -11,16 +13,24 @@ export function SignOutDialog({ open, onOpenChange }: SignOutDialogProps) {
   const navigate = useNavigate()
   const location = useLocation()
   const { auth } = useAuthStore()
+  const { signOut } = useSupabaseAuth()
 
   const handleSignOut = () => {
-    auth.reset()
-    // Preserve current location for redirect after sign-in
-    const currentPath = location.href
-    navigate({
-      to: '/sign-in',
-      search: { redirect: currentPath },
-      replace: true,
-    })
+    // Use an async IIFE so we can await Supabase while keeping the confirm handler synchronous.
+    void (async () => {
+      const currentPath = location.href
+      const { error } = await signOut()
+      if (error) {
+        toast.error(error.message)
+        return
+      }
+      auth.reset()
+      navigate({
+        to: '/sign-in',
+        search: { redirect: currentPath },
+        replace: true,
+      })
+    })()
   }
 
   return (

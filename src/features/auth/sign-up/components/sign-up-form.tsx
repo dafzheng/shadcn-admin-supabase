@@ -2,7 +2,8 @@ import { useState } from 'react'
 import { z } from 'zod'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
-import { IconFacebook, IconGithub } from '@/assets/brand-icons'
+import { useNavigate } from '@tanstack/react-router'
+import { toast } from 'sonner'
 import { cn } from '@/lib/utils'
 import { Button } from '@/components/ui/button'
 import {
@@ -15,6 +16,7 @@ import {
 } from '@/components/ui/form'
 import { Input } from '@/components/ui/input'
 import { PasswordInput } from '@/components/password-input'
+import { useSupabaseAuth } from '@/features/auth/supabase/provider'
 
 const formSchema = z
   .object({
@@ -38,6 +40,8 @@ export function SignUpForm({
   ...props
 }: React.HTMLAttributes<HTMLFormElement>) {
   const [isLoading, setIsLoading] = useState(false)
+  const navigate = useNavigate()
+  const { signUpWithPassword } = useSupabaseAuth()
 
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
@@ -48,14 +52,39 @@ export function SignUpForm({
     },
   })
 
-  function onSubmit(data: z.infer<typeof formSchema>) {
+  async function onSubmit(data: z.infer<typeof formSchema>) {
     setIsLoading(true)
-    // eslint-disable-next-line no-console
-    console.log(data)
 
-    setTimeout(() => {
-      setIsLoading(false)
-    }, 3000)
+    const redirectTo =
+      typeof window !== 'undefined'
+        ? new URL('/email-link', window.location.origin).toString()
+        : undefined
+
+    // Create the account in Supabase; the redirect ensures verification emails
+    // land back on our `/email-link` handler.
+    const { error, data: signUpData } = await signUpWithPassword({
+      email: data.email,
+      password: data.password,
+      options: redirectTo ? { emailRedirectTo: redirectTo } : undefined,
+    })
+
+    setIsLoading(false)
+
+    if (error) {
+      toast.error(error.message)
+      return
+    }
+
+    form.reset()
+
+    if (signUpData.session) {
+      toast.success('Account created. Welcome!')
+      navigate({ to: '/' })
+      return
+    }
+
+    toast.success('Account created. Check your email to finish verification.')
+    navigate({ to: '/sign-in' })
   }
 
   return (
@@ -105,38 +134,8 @@ export function SignUpForm({
           )}
         />
         <Button className='mt-2' disabled={isLoading}>
-          Create Account
+          {isLoading ? 'Creating…' : 'Create Account'}
         </Button>
-
-        <div className='relative my-2'>
-          <div className='absolute inset-0 flex items-center'>
-            <span className='w-full border-t' />
-          </div>
-          <div className='relative flex justify-center text-xs uppercase'>
-            <span className='bg-background text-muted-foreground px-2'>
-              Or continue with
-            </span>
-          </div>
-        </div>
-
-        <div className='grid grid-cols-2 gap-2'>
-          <Button
-            variant='outline'
-            className='w-full'
-            type='button'
-            disabled={isLoading}
-          >
-            <IconGithub className='h-4 w-4' /> GitHub
-          </Button>
-          <Button
-            variant='outline'
-            className='w-full'
-            type='button'
-            disabled={isLoading}
-          >
-            <IconFacebook className='h-4 w-4' /> Facebook
-          </Button>
-        </div>
       </form>
     </Form>
   )

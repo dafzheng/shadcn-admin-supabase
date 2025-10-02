@@ -1,3 +1,4 @@
+import { useMemo } from 'react'
 import { useLayout } from '@/context/layout-provider'
 import {
   Sidebar,
@@ -7,6 +8,7 @@ import {
   SidebarRail,
 } from '@/components/ui/sidebar'
 // import { AppTitle } from './app-title'
+import { useAuthStore } from '@/stores/auth-store'
 import { sidebarData } from './data/sidebar-data'
 import { NavGroup } from './nav-group'
 import { NavUser } from './nav-user'
@@ -14,6 +16,17 @@ import { TeamSwitcher } from './team-switcher'
 
 export function AppSidebar() {
   const { collapsible, variant } = useLayout()
+  const authUser = useAuthStore((state) => state.auth.user)
+  const navUser = useMemo(() => {
+    if (!authUser) {
+      return sidebarData.user
+    }
+    return {
+      name: authUser.fullName ?? authUser.email ?? sidebarData.user.name,
+      email: authUser.email ?? sidebarData.user.email,
+      avatar: authUser.avatarUrl ?? sidebarData.user.avatar,
+    }
+  }, [authUser])
   return (
     <Sidebar collapsible={collapsible} variant={variant}>
       <SidebarHeader>
@@ -29,7 +42,7 @@ export function AppSidebar() {
         ))}
       </SidebarContent>
       <SidebarFooter>
-        <NavUser user={sidebarData.user} />
+        <NavUser user={navUser} />
       </SidebarFooter>
       <SidebarRail />
     </Sidebar>
