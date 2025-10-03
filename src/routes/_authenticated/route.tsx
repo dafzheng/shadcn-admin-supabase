@@ -13,25 +13,66 @@ function SupabaseProtectedLayout() {
   const router = useRouter()
   const { user, isLoading } = useSupabaseAuth()
 
-  const redirect = router.state.location.href
+  const { pathname, search, hash } = router.state.location
+  const hasSkipLoaderFlag =
+    typeof window !== 'undefined' && sessionStorage.getItem('skipLoader') === 'true'
+  const searchString =
+    typeof search === 'string'
+      ? search
+      : (() => {
+          if (!search) return ''
+          try {
+            const params = new URLSearchParams()
+            Object.entries(search as Record<string, unknown>).forEach(([key, value]) => {
+              if (value == null) return
+              params.set(key, String(value))
+            })
+            const serialized = params.toString()
+            return serialized ? `?${serialized}` : ''
+          } catch (error) {
+            console.warn('Failed to serialize search params', error)
+            return ''
+          }
+        })()
+  const redirect = `${pathname}${searchString}${hash ?? ''}`
 
   useEffect(() => {
+    console.log('auth route effect', { isLoading, user, redirect })
     if (isLoading) return
+
     if (!user) {
-      navigate({
-        to: '/sign-in',
-        search: redirect ? { redirect } : undefined,
-        replace: true,
-      })
+      // Honor the sign-out flag so we do not carry a stale redirect back onto the sign-in URL.
+      const shouldSkipRedirect = sessionStorage.getItem('skipAuthRedirect') === 'true'
+      if (shouldSkipRedirect) {
+        sessionStorage.removeItem('skipAuthRedirect')
+        navigate({ to: '/sign-in', replace: true })
+        return
+      }
+      if (redirect) {
+        navigate({ to: '/sign-in', search: () => ({ redirect }), replace: true })
+      } else {
+        navigate({ to: '/sign-in', replace: true })
+      }
+      return
+    }
+
+    if (sessionStorage.getItem('skipLoader') !== 'true') {
+      const target = redirect || '/'
+      console.log('redirecting to loader', target)
+      if (!target.startsWith('/loading')) {
+        navigate({
+          to: '/loading',
+          search: () => ({ redirect: target }),
+          replace: true,
+        })
+      } else {
+        navigate({ to: '/', replace: true })
+      }
     }
   }, [isLoading, navigate, redirect, user])
 
-  if (isLoading || !user) {
-    return (
-      <div className='flex h-svh items-center justify-center'>
-        <Loader2 className='size-8 animate-spin text-muted-foreground' />
-      </div>
-    )
+  if (isLoading || !user || !hasSkipLoaderFlag) {
+    return null
   }
 
   return <AuthenticatedLayout />

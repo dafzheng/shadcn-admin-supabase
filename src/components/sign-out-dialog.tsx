@@ -1,4 +1,4 @@
-import { useNavigate, useLocation } from '@tanstack/react-router'
+import { useNavigate } from '@tanstack/react-router'
 import { toast } from 'sonner'
 import { useAuthStore } from '@/stores/auth-store'
 import { useSupabaseAuth } from '@/features/auth/supabase/provider'
@@ -11,25 +11,21 @@ interface SignOutDialogProps {
 
 export function SignOutDialog({ open, onOpenChange }: SignOutDialogProps) {
   const navigate = useNavigate()
-  const location = useLocation()
   const { auth } = useAuthStore()
   const { signOut } = useSupabaseAuth()
 
   const handleSignOut = () => {
     // Use an async IIFE so we can await Supabase while keeping the confirm handler synchronous.
     void (async () => {
-      const currentPath = location.href
       const { error } = await signOut()
       if (error) {
         toast.error(error.message)
         return
       }
       auth.reset()
-      navigate({
-        to: '/sign-in',
-        search: { redirect: currentPath },
-        replace: true,
-      })
+      // Flag the guard so it skips preserving the current route after an explicit sign-out.
+      sessionStorage.setItem('skipAuthRedirect', 'true')
+      navigate({ to: '/sign-in', replace: true })
     })()
   }
 

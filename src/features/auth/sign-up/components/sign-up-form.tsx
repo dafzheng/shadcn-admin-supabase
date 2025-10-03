@@ -79,7 +79,7 @@ export function SignUpForm({
 
     if (signUpData.session) {
       toast.success('Account created. Welcome!')
-      navigate({ to: '/' })
+      navigate({ to: '/loading', search: () => ({ redirect: '/' }) })
       return
     }
 

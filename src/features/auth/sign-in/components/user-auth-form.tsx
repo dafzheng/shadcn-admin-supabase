@@ -54,7 +54,8 @@ export function UserAuthForm({
   // If the user already has an active Supabase session, skip the form entirely.
   useEffect(() => {
     if (!session) return
-    navigate({ to: redirectTo ?? '/', replace: true })
+    const target = redirectTo ?? '/'
+    navigate({ to: '/loading', search: () => ({ redirect: target }), replace: true })
   }, [navigate, redirectTo, session])
 
   const onSubmit = async (data: z.infer<typeof formSchema>) => {
@@ -69,7 +70,8 @@ export function UserAuthForm({
     }
 
     toast.success('Signed in successfully')
-    navigate({ to: redirectTo ?? '/' })
+    const target = redirectTo ?? '/'
+    navigate({ to: '/loading', search: () => ({ redirect: target }) })
   }
 
   return (

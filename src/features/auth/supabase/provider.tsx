@@ -107,8 +107,18 @@ export function SupabaseAuthProvider({ url, anonKey, children }: SupabaseAuthPro
   const signOut = useCallback<SupabaseClient['auth']['signOut']>(async (options) => {
     const response = await client.auth.signOut(options)
     setSession(null)
+    sessionStorage.removeItem('skipLoader')
     return response
   }, [client])
+
+  useEffect(() => {
+    const handleBeforeUnload = () => {
+      sessionStorage.removeItem('skipLoader')
+    }
+
+    window.addEventListener('beforeunload', handleBeforeUnload)
+    return () => window.removeEventListener('beforeunload', handleBeforeUnload)
+  }, [])
 
   const value = useMemo<SupabaseAuthContextValue>(
     () => ({
