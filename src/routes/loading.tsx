@@ -3,6 +3,7 @@ import { createFileRoute } from '@tanstack/react-router'
 import { z } from 'zod'
 import { HexagonLoader } from '@/components/hexagon-loader'
 import { useSupabaseAuth } from '@/features/auth/supabase/provider'
+import { useAuthStore, type AuthActiveOrganization, type AuthOrganization } from '@/stores/auth-store'
 
 const searchSchema = z.object({
   redirect: z.string().optional(),
@@ -17,6 +18,7 @@ function LoadingRoute() {
   const navigate = Route.useNavigate()
   const { redirect } = Route.useSearch()
   const { client: supabase } = useSupabaseAuth()
+  const setUser = useAuthStore((state) => state.auth.setUser)
 
   useEffect(() => {
     sessionStorage.setItem('skipLoader', 'true')
@@ -39,6 +41,18 @@ function LoadingRoute() {
           console.error('Failed to fetch active organization', activeError)
         }
         console.log('organization bootstrap', { orgs, active })
+
+        const orgList = (orgs ?? null) as AuthOrganization[] | null
+        const activeOrg = (Array.isArray(active) ? active[0] ?? null : active ?? null) as AuthActiveOrganization
+
+        setUser((prev) => {
+          if (!prev) return prev
+          return {
+            ...prev,
+            orgs: orgList,
+            activeOrg,
+          }
+        })
       } catch (error) {
         console.error('Unexpected organization bootstrap failure', error)
       }

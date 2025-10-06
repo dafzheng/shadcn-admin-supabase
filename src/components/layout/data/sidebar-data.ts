@@ -21,6 +21,7 @@ import {
   AudioWaveform,
   Command,
   GalleryVerticalEnd,
+  UserRoundSearch,
 } from 'lucide-react'
 import { SupabaseLogo } from '@/assets/supabase-logo'
 import { type SidebarData } from '../types'
@@ -56,6 +57,11 @@ export const sidebarData: SidebarData = {
           title: 'Dashboard',
           url: '/',
           icon: LayoutDashboard,
+        },
+        {
+          title: 'Lead Search',
+          url: '/segments',
+          icon: UserRoundSearch,
         },
         {
           title: 'Tasks',

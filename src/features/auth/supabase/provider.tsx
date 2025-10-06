@@ -77,7 +77,7 @@ export function SupabaseAuthProvider({ url, anonKey, children }: SupabaseAuthPro
   useEffect(() => {
     setStoreSession(session)
     setStoreAccessToken(session?.access_token ?? null)
-    setStoreUser(mapSupabaseUser(session?.user ?? null))
+    setStoreUser((previous) => mapSupabaseUser(session?.user ?? null, previous))
   }, [session, setStoreAccessToken, setStoreSession, setStoreUser])
 
   const signInWithPassword = useCallback<
@@ -140,7 +140,7 @@ export function SupabaseAuthProvider({ url, anonKey, children }: SupabaseAuthPro
   )
 }
 
-function mapSupabaseUser(user: User | null): AuthUser | null {
+function mapSupabaseUser(user: User | null, previous: AuthUser | null): AuthUser | null {
   if (!user) return null
 
   const metadata = user.user_metadata ?? {}
@@ -154,11 +154,15 @@ function mapSupabaseUser(user: User | null): AuthUser | null {
   const avatarUrl =
     metadata.avatar_url ?? metadata.picture ?? metadata.avatar ?? metadata.image_url ?? null
 
+  const shouldPreserveOrgData = previous?.id === user.id
+
   return {
     id: user.id,
     email: user.email ?? null,
     fullName,
     avatarUrl,
+    orgs: shouldPreserveOrgData ? previous?.orgs ?? null : null,
+    activeOrg: shouldPreserveOrgData ? previous?.activeOrg ?? null : null,
   }
 }
 
