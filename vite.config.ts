@@ -6,6 +6,18 @@ import { tanstackRouter } from '@tanstack/router-plugin/vite'
 
 // https://vite.dev/config/
 export default defineConfig({
+  server: {
+    host: '0.0.0.0',
+    port: 5173,
+    allowedHosts: ['leads.salesbay.ai'],
+    proxy: {
+    '/api': {
+      target: 'http://127.0.0.1:4001',
+      changeOrigin: true,
+      secure: false,
+    },
+  },
+  },
   plugins: [
     tanstackRouter({
       target: 'react',
