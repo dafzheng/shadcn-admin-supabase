@@ -57,11 +57,11 @@ export function SignUpForm({
 
     const redirectTo =
       typeof window !== 'undefined'
-        ? new URL('/email-link', window.location.origin).toString()
+        ? new URL('/reset-password', window.location.origin).toString()
         : undefined
 
     // Create the account in Supabase; the redirect ensures verification emails
-    // land back on our `/email-link` handler.
+    // land back on our `/reset-password` handler.
     const { error, data: signUpData } = await signUpWithPassword({
       email: data.email,
       password: data.password,

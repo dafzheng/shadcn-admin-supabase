@@ -57,7 +57,7 @@ type HandlerState =
   | { status: 'redirecting'; message: string }
   | { status: 'error'; message: string }
 
-export const Route = createFileRoute('/(auth)/email-link')({
+export const Route = createFileRoute('/(auth)/reset-password')({
   validateSearch: (search): EmailLinkSearch => ({
     redirect: typeof search?.redirect === 'string' ? search.redirect : undefined,
   }),

@@ -29,7 +29,7 @@ export async function addUser(user: UserForm): Promise<any> {
       email: user.email,
       role: user.role,
       password: user.password,
-      sendInvite: true,
+      sendInvite: false,
     }
   });
   return resp.data;

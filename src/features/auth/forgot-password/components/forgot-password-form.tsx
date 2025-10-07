@@ -39,14 +39,17 @@ export function ForgotPasswordForm({
 
   async function onSubmit(data: z.infer<typeof formSchema>) {
     setIsLoading(true)
-    const redirectTo =
-      typeof window !== 'undefined'
-        ? new URL('/email-link', window.location.origin).toString()
-        : undefined
+    // const redirectTo =
+    //   typeof window !== 'undefined'
+    //     ? new URL('/reset-password', window.location.origin).toString()
+    //     : undefined
 
     // Request Supabase to send the reset email and bounce the user back to our handler page.
+    // const { error } = await client.auth.resetPasswordForEmail(data.email, {
+    //   redirectTo,
+    // })
     const { error } = await client.auth.resetPasswordForEmail(data.email, {
-      redirectTo,
+      redirectTo: window.location.origin
     })
 
     setIsLoading(false)
