@@ -56,7 +56,7 @@ function SupabaseProtectedLayout() {
       return
     }
 
-    if (sessionStorage.getItem('skipLoader') !== 'true') {
+    if (!hasSkipLoaderFlag) {
       const target = redirect || '/'
       console.log('redirecting to loader', target)
       if (!target.startsWith('/loading')) {
@@ -65,14 +65,16 @@ function SupabaseProtectedLayout() {
           search: () => ({ redirect: target }),
           replace: true,
         })
-      } else {
-        navigate({ to: '/', replace: true })
       }
     }
-  }, [isLoading, navigate, redirect, user])
+  }, [hasSkipLoaderFlag, isLoading, navigate, redirect, user])
 
   if (isLoading || !user || !hasSkipLoaderFlag) {
-    return null
+    return (
+      <div className='bg-background text-muted-foreground flex min-h-svh items-center justify-center'>
+        <Loader2 className='size-6 animate-spin' aria-hidden='true' />
+      </div>
+    )
   }
 
   return <AuthenticatedLayout />
