@@ -1,4 +1,5 @@
 import { z } from 'zod'
+import { useState } from "react";
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { MailPlus, Send } from 'lucide-react'
@@ -25,6 +26,8 @@ import { Input } from '@/components/ui/input'
 import { Textarea } from '@/components/ui/textarea'
 import { SelectDropdown } from '@/components/select-dropdown'
 import { roles } from '../data/data'
+import { sendInvitationEmail } from '../api/users'
+import { useUsers } from './users-provider'
 
 const formSchema = z.object({
   email: z.email({
@@ -50,11 +53,25 @@ export function UsersInviteDialog({
     resolver: zodResolver(formSchema),
     defaultValues: { email: '', role: '', desc: '' },
   })
+  const { refetchUsers } = useUsers()
+  const [loading, setLoading] = useState(false)
 
-  const onSubmit = (values: UserInviteForm) => {
-    form.reset()
+  const onSubmit = async (values: UserInviteForm) => {
+    setLoading(true)
+    try {
+      await sendInvitationEmail(values.email, values.role, '')
+      await refetchUsers()
+      form.reset()
+      onOpenChange(false)
+    } catch (e: any) {
+      alert(e?.message || "send fail")
+    } finally {
+      setLoading(false)
+    }
+
+
     // showSubmittedData(values)
-    onOpenChange(false)
+
   }
 
   return (
@@ -138,9 +155,9 @@ export function UsersInviteDialog({
         </Form>
         <DialogFooter className='gap-y-2'>
           <DialogClose asChild>
-            <Button variant='outline'>Cancel</Button>
+            <Button variant='outline' disabled={loading}>Cancel</Button>
           </DialogClose>
-          <Button type='submit' form='user-invite-form'>
+          <Button type='submit' form='user-invite-form' disabled={loading}>
             Invite <Send />
           </Button>
         </DialogFooter>

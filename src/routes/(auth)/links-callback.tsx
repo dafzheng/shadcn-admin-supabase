@@ -3,7 +3,7 @@ import { createFileRoute } from '@tanstack/react-router'
 import { z } from 'zod'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
-import { Loader2, ShieldCheck, MailCheck, AlertCircle } from 'lucide-react'
+import { Loader2, ShieldCheck, MailCheck, AlertCircle, Sparkles } from 'lucide-react'
 import { toast } from 'sonner'
 import { Button } from '@/components/ui/button'
 import {
@@ -23,6 +23,7 @@ import {
   FormMessage,
 } from '@/components/ui/form'
 import { Input } from '@/components/ui/input'
+import { PasswordInput } from '@/components/password-input'
 import { useSupabaseAuth } from '@/features/auth/supabase/provider'
 
 // Schema used when Supabase sends a recovery link (e.g. password reset) that
@@ -56,8 +57,30 @@ type HandlerState =
   | { status: 'password' }
   | { status: 'redirecting'; message: string }
   | { status: 'error'; message: string }
+  | { status: 'invite'; email: string | null; fullName: string | null }
 
-export const Route = createFileRoute('/(auth)/reset-password')({
+const inviteSchema = z
+  .object({
+    fullName: z.string().min(1, 'Please enter your full name'),
+    password: z
+      .string()
+      .min(8, 'Password must be at least 8 characters long')
+      .max(128, 'Password is too long'),
+    confirmPassword: z.string().min(1, 'Please confirm your password'),
+  })
+  .superRefine(({ password, confirmPassword }, ctx) => {
+    if (password !== confirmPassword) {
+      ctx.addIssue({
+        path: ['confirmPassword'],
+        code: 'custom',
+        message: 'Passwords do not match',
+      })
+    }
+  })
+
+type InviteFormValues = z.infer<typeof inviteSchema>
+
+export const Route = createFileRoute('/(auth)/links-callback')({
   validateSearch: (search): EmailLinkSearch => ({
     redirect: typeof search?.redirect === 'string' ? search.redirect : undefined,
   }),
@@ -86,11 +109,13 @@ function EmailLinkHandler() {
         code: getParam('code'),
         accessToken: getParam('access_token'),
         refreshToken: getParam('refresh_token'),
+        token: getParam('token') ?? getParam('token_hash'),
+        email: getParam('email'),
       }
     }
 
     const handle = async () => {
-      const { type, code, accessToken, refreshToken } = parseParams()
+      const { type, code, accessToken, refreshToken, token, email } = parseParams()
 
       if (window.location.hash) {
         window.history.replaceState(
@@ -132,7 +157,6 @@ function EmailLinkHandler() {
           case 'email_change':
           case 'email_change_current':
           case 'email_change_new':
-          case 'invite':
           case 'verification':
             await ensureSession()
             toast.success('Email verified successfully. Redirecting...')
@@ -141,6 +165,28 @@ function EmailLinkHandler() {
               navigate({ to: redirectTarget, replace: true })
             }, 1200)
             break
+          case 'invite': {
+            if (code || (accessToken && refreshToken)) {
+              await ensureSession()
+            } else if (token) {
+              const { error } = await client.auth.verifyOtp({
+                token,
+                type: 'invite',
+                email: email ?? undefined,
+              })
+              if (error) throw error
+            } else {
+              throw new Error('Invite link is missing credentials. Please request a new invite.')
+            }
+            const { data, error } = await client.auth.getUser()
+            if (error) throw error
+            setState({
+              status: 'invite',
+              email: data.user?.email ?? null,
+              fullName: (data.user?.user_metadata?.full_name as string | null) ?? null,
+            })
+            break
+          }
           default:
             setState({
               status: 'error',
@@ -173,6 +219,19 @@ function EmailLinkHandler() {
     return <ResetPasswordView onSuccess={() => handleResetSuccess(navigate, redirectTarget, client)} />
   }
 
+  if (state.status === 'invite') {
+    return (
+      <InviteCompletionView
+        email={state.email}
+        initialFullName={state.fullName}
+        onCompleted={() => {
+          toast.success('Account details saved. Redirecting you now…')
+          navigate({ to: redirectTarget, replace: true })
+        }}
+      />
+    )
+  }
+
   if (state.status === 'redirecting') {
     return (
       <CenteredCard
@@ -202,6 +261,133 @@ function EmailLinkHandler() {
         </div>
       }
     />
+  )
+}
+
+function InviteCompletionView({
+  email,
+  initialFullName,
+  onCompleted,
+}: {
+  email: string | null
+  initialFullName: string | null
+  onCompleted: () => void
+}) {
+  const { client } = useSupabaseAuth()
+  const form = useForm<InviteFormValues>({
+    resolver: zodResolver(inviteSchema),
+    defaultValues: {
+      fullName: initialFullName ?? '',
+      password: '',
+      confirmPassword: '',
+    },
+  })
+  const [isSubmitting, setIsSubmitting] = useState(false)
+
+  useEffect(() => {
+    form.reset({
+      fullName: initialFullName ?? '',
+      password: '',
+      confirmPassword: '',
+    })
+  }, [form, initialFullName])
+
+  const submit = async (values: InviteFormValues) => {
+    setIsSubmitting(true)
+    const { error } = await client.auth.updateUser({
+      password: values.password,
+      data: { full_name: values.fullName },
+    })
+    setIsSubmitting(false)
+
+    if (error) {
+      toast.error(error.message)
+      return
+    }
+
+    onCompleted()
+  }
+
+  return (
+    <div className='flex min-h-svh items-center justify-center px-4 py-10'>
+      <Card className='w-full max-w-lg shadow-lg'>
+        <CardHeader className='space-y-3 text-center'>
+          <Sparkles className='mx-auto size-10 text-primary' />
+          <CardTitle className='text-2xl font-semibold'>Finish setting up your account</CardTitle>
+          <CardDescription>
+            {email ? (
+              <span>
+                You are joining as <span className='font-medium'>{email}</span>. Choose a password
+                and tell us who you are.
+              </span>
+            ) : (
+              'Choose a password and tell us who you are.'
+            )}
+          </CardDescription>
+        </CardHeader>
+        <CardContent>
+          <Form {...form}>
+            <form className='space-y-4' onSubmit={form.handleSubmit(submit)}>
+              <FormField
+                control={form.control}
+                name='fullName'
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Full name</FormLabel>
+                    <FormControl>
+                      <Input autoComplete='name' placeholder='Jane Doe' {...field} />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+              <FormField
+                control={form.control}
+                name='password'
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Password</FormLabel>
+                    <FormControl>
+                      <PasswordInput autoComplete='new-password' placeholder='********' {...field} />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+              <FormField
+                control={form.control}
+                name='confirmPassword'
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Confirm password</FormLabel>
+                    <FormControl>
+                      <PasswordInput autoComplete='new-password' placeholder='********' {...field} />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+              <Button className='w-full' type='submit' disabled={isSubmitting}>
+                {isSubmitting ? (
+                  <span className='flex items-center justify-center gap-2'>
+                    <Loader2 className='size-4 animate-spin' />
+                    Saving…
+                  </span>
+                ) : (
+                  'Save and continue'
+                )}
+              </Button>
+            </form>
+          </Form>
+        </CardContent>
+        <CardFooter className='flex flex-col gap-2 text-center text-sm text-muted-foreground'>
+          <p>
+            Passwords must be at least 8 characters. You can update these details later from your
+            profile settings.
+          </p>
+        </CardFooter>
+      </Card>
+    </div>
   )
 }
 

@@ -41,7 +41,7 @@ export function ForgotPasswordForm({
     setIsLoading(true)
     // const redirectTo =
     //   typeof window !== 'undefined'
-    //     ? new URL('/reset-password', window.location.origin).toString()
+    //     ? new URL('/links-callback', window.location.origin).toString()
     //     : undefined
 
     // Request Supabase to send the reset email and bounce the user back to our handler page.

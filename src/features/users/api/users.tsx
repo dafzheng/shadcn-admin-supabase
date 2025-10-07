@@ -35,11 +35,10 @@ export async function addUser(user: UserForm): Promise<any> {
   return resp.data;
 }
 
-
 export async function sendInvitationEmail(email: string, role: string, description: string): Promise<any> {
 
   const resp = await authedAxios({
-    url: "/api/tenants/invitations",
+    url: "/api/tenants/test",
     method: "POST",
     data: {
       email,

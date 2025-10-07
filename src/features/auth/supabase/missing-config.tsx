@@ -74,7 +74,7 @@ export function MissingSupabaseConfig() {
         </p>
         <p className='text-sm text-muted-foreground'>
           Tip: point password reset and email confirmation redirects to{' '}
-          <code className={codeBlock}>/reset-password</code> inside the Supabase
+          <code className={codeBlock}>/links-callback</code> inside the Supabase
           dashboard so the built-in handler can process those flows.
         </p>
       </div>

@@ -65,7 +65,7 @@ export const sidebarData: SidebarData = {
           url: '/segments',
           icon: UserRoundSearch,
         },
-         {
+        {
           title: 'Drip Pipeline',
           url: '/pipelines',
           icon: NotebookText,
@@ -86,11 +86,7 @@ export const sidebarData: SidebarData = {
         //   badge: '3',
         //   icon: MessagesSquare,
         // },
-        {
-          title: 'Users',
-          url: '/users',
-          icon: Users,
-        },
+
         // {
         //   title: 'Supabase Auth',
         //   icon: SupabaseLogo,
@@ -111,7 +107,7 @@ export const sidebarData: SidebarData = {
         // },
       ],
     },
-     {
+    {
       title: 'Components',
       items: [
         // {
@@ -119,13 +115,24 @@ export const sidebarData: SidebarData = {
         //   url: '/proposals',
         //   icon: FilePenLine,
         // },
-         {
+        {
           title: 'Emails',
           url: '/emails',
           icon: Mail,
         },
       ]
     },
+    {
+      title: 'Tenants',
+      items: [
+        {
+          title: 'Users',
+          url: '/users',
+          icon: Users,
+        },
+      ]
+    },
+
     // {
     //   title: 'Pages',
     //   items: [
