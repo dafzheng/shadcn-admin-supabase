@@ -24,6 +24,7 @@ import { Route as authSignInRouteImport } from './routes/(auth)/sign-in'
 import { Route as authOtpRouteImport } from './routes/(auth)/otp'
 import { Route as authLinksCallbackRouteImport } from './routes/(auth)/links-callback'
 import { Route as authForgotPasswordRouteImport } from './routes/(auth)/forgot-password'
+import { Route as authCompleteProfileRouteImport } from './routes/(auth)/complete-profile'
 import { Route as AuthenticatedSettingsRouteRouteImport } from './routes/_authenticated/settings/route'
 import { Route as AuthenticatedUsersbackIndexRouteImport } from './routes/_authenticated/usersback/index'
 import { Route as AuthenticatedUsersIndexRouteImport } from './routes/_authenticated/users/index'
@@ -114,6 +115,11 @@ const authLinksCallbackRoute = authLinksCallbackRouteImport.update({
 const authForgotPasswordRoute = authForgotPasswordRouteImport.update({
   id: '/(auth)/forgot-password',
   path: '/forgot-password',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const authCompleteProfileRoute = authCompleteProfileRouteImport.update({
+  id: '/(auth)/complete-profile',
+  path: '/complete-profile',
   getParentRoute: () => rootRouteImport,
 } as any)
 const AuthenticatedSettingsRouteRoute =
@@ -212,6 +218,7 @@ const AuthenticatedErrorsErrorRoute =
 export interface FileRoutesByFullPath {
   '/loading': typeof LoadingRoute
   '/settings': typeof AuthenticatedSettingsRouteRouteWithChildren
+  '/complete-profile': typeof authCompleteProfileRoute
   '/forgot-password': typeof authForgotPasswordRoute
   '/links-callback': typeof authLinksCallbackRoute
   '/otp': typeof authOtpRoute
@@ -243,6 +250,7 @@ export interface FileRoutesByFullPath {
 }
 export interface FileRoutesByTo {
   '/loading': typeof LoadingRoute
+  '/complete-profile': typeof authCompleteProfileRoute
   '/forgot-password': typeof authForgotPasswordRoute
   '/links-callback': typeof authLinksCallbackRoute
   '/otp': typeof authOtpRoute
@@ -277,6 +285,7 @@ export interface FileRoutesById {
   '/_authenticated': typeof AuthenticatedRouteRouteWithChildren
   '/loading': typeof LoadingRoute
   '/_authenticated/settings': typeof AuthenticatedSettingsRouteRouteWithChildren
+  '/(auth)/complete-profile': typeof authCompleteProfileRoute
   '/(auth)/forgot-password': typeof authForgotPasswordRoute
   '/(auth)/links-callback': typeof authLinksCallbackRoute
   '/(auth)/otp': typeof authOtpRoute
@@ -311,6 +320,7 @@ export interface FileRouteTypes {
   fullPaths:
     | '/loading'
     | '/settings'
+    | '/complete-profile'
     | '/forgot-password'
     | '/links-callback'
     | '/otp'
@@ -342,6 +352,7 @@ export interface FileRouteTypes {
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/loading'
+    | '/complete-profile'
     | '/forgot-password'
     | '/links-callback'
     | '/otp'
@@ -375,6 +386,7 @@ export interface FileRouteTypes {
     | '/_authenticated'
     | '/loading'
     | '/_authenticated/settings'
+    | '/(auth)/complete-profile'
     | '/(auth)/forgot-password'
     | '/(auth)/links-callback'
     | '/(auth)/otp'
@@ -408,6 +420,7 @@ export interface FileRouteTypes {
 export interface RootRouteChildren {
   AuthenticatedRouteRoute: typeof AuthenticatedRouteRouteWithChildren
   LoadingRoute: typeof LoadingRoute
+  authCompleteProfileRoute: typeof authCompleteProfileRoute
   authForgotPasswordRoute: typeof authForgotPasswordRoute
   authLinksCallbackRoute: typeof authLinksCallbackRoute
   authOtpRoute: typeof authOtpRoute
@@ -526,6 +539,13 @@ declare module '@tanstack/react-router' {
       path: '/forgot-password'
       fullPath: '/forgot-password'
       preLoaderRoute: typeof authForgotPasswordRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/(auth)/complete-profile': {
+      id: '/(auth)/complete-profile'
+      path: '/complete-profile'
+      fullPath: '/complete-profile'
+      preLoaderRoute: typeof authCompleteProfileRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/_authenticated/settings': {
@@ -704,6 +724,7 @@ const AuthenticatedRouteRouteWithChildren =
 const rootRouteChildren: RootRouteChildren = {
   AuthenticatedRouteRoute: AuthenticatedRouteRouteWithChildren,
   LoadingRoute: LoadingRoute,
+  authCompleteProfileRoute: authCompleteProfileRoute,
   authForgotPasswordRoute: authForgotPasswordRoute,
   authLinksCallbackRoute: authLinksCallbackRoute,
   authOtpRoute: authOtpRoute,

@@ -1,4 +1,4 @@
-import { useEffect } from 'react'
+import { useCallback, useEffect, useState } from 'react'
 import { z } from 'zod'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
@@ -39,7 +39,8 @@ export function UserAuthForm({
   ...props
 }: UserAuthFormProps) {
   const navigate = useNavigate()
-  const { signInWithPassword, isLoading, session } = useSupabaseAuth()
+  const { signInWithPassword, signInWithOAuth, isLoading, session } = useSupabaseAuth()
+  const [isOAuthLoading, setIsOAuthLoading] = useState(false)
 
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
@@ -73,6 +74,45 @@ export function UserAuthForm({
     const target = redirectTo ?? '/'
     navigate({ to: '/loading', search: () => ({ redirect: target }) })
   }
+
+  const handleGoogleSignIn = useCallback(async () => {
+    if (isOAuthLoading) return
+
+    try {
+      setIsOAuthLoading(true)
+      const target = redirectTo ?? '/'
+      let redirectUrl: string | undefined
+      if (typeof window !== 'undefined') {
+        const url = new URL('/loading', window.location.origin)
+        if (target && target !== '/') {
+          url.searchParams.set('redirect', target)
+        }
+        redirectUrl = url.toString()
+        // redirectUrl = 'https://sb.leads.salesbay.ai/auth/v1/callback'
+      }
+
+
+      console.log('redirectUrl = ', redirectUrl)
+      const { error } = await signInWithOAuth({
+        provider: 'google',
+        options: redirectUrl
+          ? {
+              redirectTo: redirectUrl,
+            }
+          : undefined,
+      })
+
+      if (error) {
+        toast.error(error.message)
+      }
+    } catch (error) {
+      const message = error instanceof Error ? error.message : 'Failed to start Google sign in'
+      toast.error(message)
+    } finally {
+      // Supabase will redirect on success, but reset the state in case we remain on the page.
+      setIsOAuthLoading(false)
+    }
+  }, [isOAuthLoading, redirectTo, signInWithOAuth])
 
   return (
     <Form {...form}>
@@ -116,6 +156,16 @@ export function UserAuthForm({
         <Button className='mt-2' disabled={isSubmitting || isLoading}>
           {isSubmitting || isLoading ? <Loader2 className='animate-spin' /> : <LogIn />}
           Sign in
+        </Button>
+        <Button
+          type='button'
+          variant='outline'
+          className='mt-1 flex items-center justify-center gap-2'
+          disabled={isSubmitting || isLoading || isOAuthLoading}
+          onClick={handleGoogleSignIn}
+        >
+          {isOAuthLoading ? <Loader2 className='size-4 animate-spin' /> : null}
+          Continue with Google
         </Button>
 
         <p className='text-sm text-muted-foreground text-center'>

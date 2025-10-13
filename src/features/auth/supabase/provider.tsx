@@ -17,6 +17,7 @@ type SupabaseAuthContextValue = {
   isLoading: boolean
   signInWithPassword: SupabaseClient['auth']['signInWithPassword']
   signUpWithPassword: SupabaseClient['auth']['signUp']
+  signInWithOAuth: SupabaseClient['auth']['signInWithOAuth']
   signOut: SupabaseClient['auth']['signOut']
 }
 
@@ -111,6 +112,17 @@ export function SupabaseAuthProvider({ url, anonKey, children }: SupabaseAuthPro
     return response
   }, [client])
 
+  const signInWithOAuth = useCallback<SupabaseClient['auth']['signInWithOAuth']>(
+    async (options) => {
+      const result = await client.auth.signInWithOAuth(options)
+      if (result.data.session) {
+        setSession(result.data.session)
+      }
+      return result
+    },
+    [client]
+  )
+
   useEffect(() => {
     const handleBeforeUnload = () => {
       sessionStorage.removeItem('skipLoader')
@@ -127,10 +139,11 @@ export function SupabaseAuthProvider({ url, anonKey, children }: SupabaseAuthPro
       user: session?.user ?? null,
       isLoading,
       signInWithPassword,
+      signInWithOAuth,
       signUpWithPassword,
       signOut,
     }),
-    [client, isLoading, session, signInWithPassword, signOut, signUpWithPassword]
+    [client, isLoading, session, signInWithOAuth, signInWithPassword, signOut, signUpWithPassword]
   )
 
   return (

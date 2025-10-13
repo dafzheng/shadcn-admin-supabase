@@ -4,76 +4,18 @@ import { z } from 'zod'
 import { HexagonLoader } from '@/components/hexagon-loader'
 import { useSupabaseAuth } from '@/features/auth/supabase/provider'
 import { getAccountProfile } from '@/features/users/api/users'
+import { parseAccountProfile } from '@/features/users/utils/account-profile'
 import {
   useAuthStore,
   type AuthAccountProfile,
   type AuthActiveOrganization,
   type AuthOrganization,
+  type AuthUser,
 } from '@/stores/auth-store'
 
 const searchSchema = z.object({
   redirect: z.string().optional(),
 })
-
-const accountProfileSchema = z
-  .object({
-    id: z.string(),
-    full_name: z.string(),
-    avatar_url: z.string().nullish(),
-    email: z.string().nullish(),
-    created_at: z.string(),
-    updated_at: z.string(),
-    status: z.string(),
-  })
-  .transform<AuthAccountProfile>((profile) => ({
-    id: profile.id,
-    fullName: profile.full_name.trim(),
-    avatarUrl:
-      typeof profile.avatar_url === 'string' && profile.avatar_url.trim().length > 0
-        ? profile.avatar_url
-        : null,
-    email:
-      typeof profile.email === 'string' && profile.email.trim().length > 0
-        ? profile.email
-        : null,
-    createdAt: profile.created_at,
-    updatedAt: profile.updated_at,
-    status: profile.status,
-  }))
-
-function parseAccountProfile(raw: unknown): AuthAccountProfile | null {
-  if (raw === null || raw === undefined) return null
-
-  const candidates: unknown[] = []
-
-  if (Array.isArray(raw)) {
-    candidates.push(...raw)
-  }
-
-  if (typeof raw === 'object' && raw !== null) {
-    candidates.push(raw)
-    const record = raw as Record<string, unknown>
-    if ('data' in record) {
-      const data = record.data
-      if (Array.isArray(data)) {
-        candidates.push(...data)
-      } else if (data !== null && data !== undefined) {
-        candidates.push(data)
-      }
-    }
-  } else {
-    candidates.push(raw)
-  }
-
-  for (const candidate of candidates) {
-    const result = accountProfileSchema.safeParse(candidate)
-    if (result.success) {
-      return result.data
-    }
-  }
-
-  return null
-}
 
 export const Route = createFileRoute('/loading')({
   component: LoadingRoute,
@@ -83,10 +25,12 @@ export const Route = createFileRoute('/loading')({
 function LoadingRoute() {
   const navigate = Route.useNavigate()
   const { redirect } = Route.useSearch()
-  const { client: supabase } = useSupabaseAuth()
+  const { client: supabase, user: supabaseUser } = useSupabaseAuth()
   const setUser = useAuthStore((state) => state.auth.setUser)
 
   useEffect(() => {
+    if (!supabaseUser) return
+
     sessionStorage.setItem('skipLoader', 'true')
     console.log('loading route', { redirect })
     const target = redirect ?? '/'
@@ -94,6 +38,7 @@ function LoadingRoute() {
 
     // Resolve initial organization context before letting the user through.
     void (async () => {
+      let accountProfile: AuthAccountProfile | null = null
       try {
         const [{ data: orgs, error: orgsError }, { data: active, error: activeError }] = await Promise.all([
           supabase.rpc('my_orgs'),
@@ -110,7 +55,6 @@ function LoadingRoute() {
 
         const orgList = (orgs ?? null) as AuthOrganization[] | null
         const activeOrg = (Array.isArray(active) ? active[0] ?? null : active ?? null) as AuthActiveOrganization
-        let accountProfile: AuthAccountProfile | null = null
 
         try {
           const profileResponse = await getAccountProfile()
@@ -125,33 +69,63 @@ function LoadingRoute() {
         }
 
         setUser((prev) => {
-          if (!prev) return prev
-          const profile = accountProfile ?? prev.profile ?? null
+          const baseUser: AuthUser | null =
+            prev ??
+            (supabaseUser
+              ? {
+                  id: supabaseUser.id,
+                  email: supabaseUser.email ?? null,
+                  fullName:
+                    typeof supabaseUser.user_metadata?.full_name === 'string'
+                      ? supabaseUser.user_metadata.full_name
+                      : prev?.fullName ?? null,
+                  avatarUrl:
+                    typeof supabaseUser.user_metadata?.avatar_url === 'string'
+                      ? supabaseUser.user_metadata.avatar_url
+                      : prev?.avatarUrl ?? null,
+                  orgs: null,
+                  activeOrg: null,
+                  profile: null,
+                }
+              : null)
+
+          if (!baseUser) return baseUser
+
+          const profile = accountProfile ?? baseUser.profile ?? null
           const profileFullName = profile?.fullName?.trim()
           const profileAvatarUrl = profile?.avatarUrl ?? null
 
           return {
-            ...prev,
-            orgs: orgList,
-            activeOrg,
+            ...baseUser,
+            orgs: orgList ?? baseUser.orgs ?? null,
+            activeOrg: activeOrg ?? baseUser.activeOrg ?? null,
             profile,
-            fullName: profileFullName ? profileFullName : prev.fullName,
-            avatarUrl: profileAvatarUrl ?? prev.avatarUrl ?? null,
+            fullName: profileFullName ? profileFullName : baseUser.fullName ?? null,
+            avatarUrl: profileAvatarUrl ?? baseUser.avatarUrl ?? null,
           }
         })
+
       } catch (error) {
         console.error('Unexpected organization bootstrap failure', error)
       }
 
       if (!isCancelled) {
-        navigate({ to: target, replace: true })
+        if (!accountProfile || accountProfile.fullName.length === 0) {
+          navigate({
+            to: '/complete-profile',
+            search: () => (target && target !== '/' ? { redirect: target } : {}),
+            replace: true,
+          })
+        } else {
+          navigate({ to: target, replace: true })
+        }
       }
     })()
 
     return () => {
       isCancelled = true
     }
-  }, [navigate, redirect, setUser, supabase])
+  }, [navigate, redirect, setUser, supabase, supabaseUser])
 
   return (
     <div className='flex min-h-svh flex-col items-center justify-center gap-8 bg-background px-4'>

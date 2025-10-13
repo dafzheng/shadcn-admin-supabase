@@ -21,6 +21,19 @@ export async function updateAccountProfile(full_name: string): Promise<any> {
   return resp;
 }
 
+export async function updateAccountProviderProfile(full_name: string): Promise<any> {
+  const resp = await authedAxios({
+    url: "/api/accounts/provider/profiles",
+    method: "PATCH",
+    data: {
+      full_name,
+      token: 'TODO....'
+    }
+  });
+  return resp;
+}
+
+
 export async function getAccountProfile(): Promise<any> {
   const resp = await authedAxios({
     url: "/api/accounts/profiles",
