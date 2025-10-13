@@ -21,6 +21,15 @@ export async function updateAccountProfile(full_name: string): Promise<any> {
   return resp;
 }
 
+export async function getAccountProfile(): Promise<any> {
+  const resp = await authedAxios({
+    url: "/api/accounts/profiles",
+    method: "GET",
+  });
+  return resp;
+}
+
+
 export async function getUsers(): Promise<any> {
   const resp = await authedAxios({
     url: "/api/tenants/users",

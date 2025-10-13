@@ -154,15 +154,16 @@ function mapSupabaseUser(user: User | null, previous: AuthUser | null): AuthUser
   const avatarUrl =
     metadata.avatar_url ?? metadata.picture ?? metadata.avatar ?? metadata.image_url ?? null
 
-  const shouldPreserveOrgData = previous?.id === user.id
+  const shouldPreserveExistingData = previous?.id === user.id
 
   return {
     id: user.id,
     email: user.email ?? null,
     fullName,
     avatarUrl,
-    orgs: shouldPreserveOrgData ? previous?.orgs ?? null : null,
-    activeOrg: shouldPreserveOrgData ? previous?.activeOrg ?? null : null,
+    orgs: shouldPreserveExistingData ? previous?.orgs ?? null : null,
+    activeOrg: shouldPreserveExistingData ? previous?.activeOrg ?? null : null,
+    profile: shouldPreserveExistingData ? previous?.profile ?? null : null,
   }
 }
 

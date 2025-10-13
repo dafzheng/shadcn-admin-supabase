@@ -3,6 +3,15 @@ import type { Session } from '@supabase/supabase-js'
 
 export type AuthOrganization = Record<string, unknown>
 export type AuthActiveOrganization = Record<string, unknown> | null
+export type AuthAccountProfile = {
+  id: string
+  fullName: string
+  avatarUrl: string | null
+  email: string | null
+  createdAt: string
+  updatedAt: string
+  status: string
+}
 
 export type AuthUser = {
   id: string
@@ -11,6 +20,7 @@ export type AuthUser = {
   avatarUrl?: string | null
   orgs?: AuthOrganization[] | null
   activeOrg?: AuthActiveOrganization
+  profile?: AuthAccountProfile | null
 }
 
 interface AuthState {
