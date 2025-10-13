@@ -10,6 +10,17 @@ export async function getAccountOrg(): Promise<any> {
   return resp;
 }
 
+export async function updateAccountProfile(full_name: string): Promise<any> {
+  const resp = await authedAxios({
+    url: "/api/accounts/profiles",
+    method: "PATCH",
+    data: {
+      full_name,
+    }
+  });
+  return resp;
+}
+
 export async function getUsers(): Promise<any> {
   const resp = await authedAxios({
     url: "/api/tenants/users",

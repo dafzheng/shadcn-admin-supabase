@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'react'
+import { useEffect, useMemo, useRef, useState } from 'react'
 import { createFileRoute } from '@tanstack/react-router'
 import { z } from 'zod'
 import { useForm } from 'react-hook-form'
@@ -25,6 +25,7 @@ import {
 import { Input } from '@/components/ui/input'
 import { PasswordInput } from '@/components/password-input'
 import { useSupabaseAuth } from '@/features/auth/supabase/provider'
+import { updateAccountProfile } from '@/features/users/api/users'
 
 // Schema used when Supabase sends a recovery link (e.g. password reset) that
 // requires the visitor to choose a new password before continuing.
@@ -50,6 +51,15 @@ type PasswordFormValues = z.infer<typeof passwordSchema>
 
 type EmailLinkSearch = {
   redirect?: string
+}
+
+type EmailLinkParams = {
+  type: string
+  code: string | null
+  accessToken: string | null
+  refreshToken: string | null
+  token: string | null
+  email: string | null
 }
 
 type HandlerState =
@@ -92,13 +102,14 @@ function EmailLinkHandler() {
   const search = Route.useSearch()
   const { client } = useSupabaseAuth()
   const [state, setState] = useState<HandlerState>({ status: 'checking' })
+  const paramsRef = useRef<EmailLinkParams | null>(null)
 
   // Once the link is processed we redirect to the requested destination (defaults to dashboard).
   const redirectTarget = useMemo(() => search.redirect ?? '/', [search.redirect])
 
   useEffect(() => {
     // Supabase may append credentials in either the hash fragment or the query string.
-    const parseParams = () => {
+    const parseParams = (): EmailLinkParams => {
       const hashParams = new URLSearchParams(window.location.hash.replace(/^#/, ''))
       const queryParams = new URLSearchParams(window.location.search)
 
@@ -114,8 +125,13 @@ function EmailLinkHandler() {
       }
     }
 
-    const handle = async () => {
-      const { type, code, accessToken, refreshToken, token, email } = parseParams()
+    const getParams = () => {
+      if (paramsRef.current) {
+        return paramsRef.current
+      }
+
+      const parsed = parseParams()
+      paramsRef.current = parsed
 
       if (window.location.hash) {
         window.history.replaceState(
@@ -124,6 +140,12 @@ function EmailLinkHandler() {
           `${window.location.pathname}${window.location.search}`
         )
       }
+
+      return parsed
+    }
+
+    const handle = async () => {
+      const { type, code, accessToken, refreshToken, token, email } = getParams()
 
       if (!type) {
         setState({ status: 'error', message: 'Missing link type. Please request a new email.' })
@@ -296,12 +318,19 @@ function InviteCompletionView({
     setIsSubmitting(true)
     const { error } = await client.auth.updateUser({
       password: values.password,
-      data: { full_name: values.fullName },
+      // data: { full_name: values.fullName },
     })
+
+    const { data, updateError } = await updateAccountProfile(values.fullName)
     setIsSubmitting(false)
 
     if (error) {
       toast.error(error.message)
+      return
+    }
+
+    if (updateError) {
+      toast.error(updateError.message)
       return
     }
 
