@@ -1,6 +1,7 @@
 import { UsersActionDialog } from './users-action-dialog'
 import { UsersDeleteDialog } from './users-delete-dialog'
 import { UsersInviteDialog } from './users-invite-dialog'
+import { UsersGenerateTokenDialog } from './users-generate-token-dialog'
 import { useUsers } from './users-provider'
 
 export function UsersDialogs() {
@@ -17,6 +18,12 @@ export function UsersDialogs() {
         key='user-invite'
         open={open === 'invite'}
         onOpenChange={() => setOpen('invite')}
+      />
+
+      <UsersGenerateTokenDialog
+        key='user-generate-token'
+        open={open === 'generate-token'}
+        onOpenChange={() => setOpen('generate-token')}
       />
 
       {currentRow && (

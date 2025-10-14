@@ -7,6 +7,8 @@ import { Loader2, LogIn } from 'lucide-react'
 import { toast } from 'sonner'
 import { cn } from '@/lib/utils'
 import { Button } from '@/components/ui/button'
+
+import { IconGoogle } from '@/assets/brand-icons'
 import {
   Form,
   FormControl,
@@ -165,19 +167,10 @@ export function UserAuthForm({
           onClick={handleGoogleSignIn}
         >
           {isOAuthLoading ? <Loader2 className='size-4 animate-spin' /> : null}
+          {!isOAuthLoading ? <IconGoogle className='size-4' /> : null}
           Continue with Google
         </Button>
 
-        <p className='text-sm text-muted-foreground text-center'>
-          Don't have an account?{' '}
-          <Link
-            to='/sign-up'
-            className='text-primary underline decoration-dashed underline-offset-2'
-          >
-            Create one
-          </Link>
-          .
-        </p>
       </form>
     </Form>
   )

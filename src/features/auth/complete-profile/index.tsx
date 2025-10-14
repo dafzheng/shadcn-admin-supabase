@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'react'
+import { useCallback, useEffect, useMemo, useState } from 'react'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { useNavigate } from '@tanstack/react-router'
@@ -8,7 +8,7 @@ import { z } from 'zod'
 import { AuthLayout } from '@/features/auth/auth-layout'
 import { useSupabaseAuth } from '@/features/auth/supabase/provider'
 import { useAuthStore } from '@/stores/auth-store'
-import { updateAccountProfile, getAccountProfile, updateAccountProviderProfile } from '@/features/users/api/users'
+import { getAccountProfile, updateAccountProviderProfile } from '@/features/users/api/users'
 import { parseAccountProfile } from '@/features/users/utils/account-profile'
 import { Button } from '@/components/ui/button'
 import {
@@ -34,6 +34,10 @@ const profileFormSchema = z.object({
     .trim()
     .min(1, 'Please enter your full name')
     .max(160, 'Full name is too long'),
+  token: z
+    .string()
+    .trim()
+    .min(1, 'Please enter your token'),
 })
 
 type ProfileFormValues = z.infer<typeof profileFormSchema>
@@ -44,10 +48,12 @@ type CompleteProfileProps = {
 
 export function CompleteProfile({ redirectTo }: CompleteProfileProps) {
   const navigate = useNavigate()
-  const { user: supabaseUser, isLoading: isAuthLoading } = useSupabaseAuth()
+  const { user: supabaseUser, isLoading: isAuthLoading, signOut } = useSupabaseAuth()
   const authUser = useAuthStore((state) => state.auth.user)
   const setAuthUser = useAuthStore((state) => state.auth.setUser)
+  const resetAuth = useAuthStore((state) => state.auth.reset)
   const [isSubmitting, setIsSubmitting] = useState(false)
+  const [isCancelling, setIsCancelling] = useState(false)
 
   const fallbackName = useMemo(() => {
     const profileName = authUser?.profile?.fullName ?? ''
@@ -62,11 +68,12 @@ export function CompleteProfile({ redirectTo }: CompleteProfileProps) {
     resolver: zodResolver(profileFormSchema),
     defaultValues: {
       fullName: fallbackName,
+      token: '',
     },
   })
 
   useEffect(() => {
-    form.reset({ fullName: fallbackName })
+    form.reset({ fullName: fallbackName, token: '' })
   }, [fallbackName, form])
 
   useEffect(() => {
@@ -83,6 +90,7 @@ export function CompleteProfile({ redirectTo }: CompleteProfileProps) {
 
   const handleSubmit = async (values: ProfileFormValues) => {
     const fullName = values.fullName.trim()
+    const token = values.token.trim()
     if (fullName.length === 0) {
       form.setError('fullName', {
         type: 'manual',
@@ -90,10 +98,17 @@ export function CompleteProfile({ redirectTo }: CompleteProfileProps) {
       })
       return
     }
+    if (token.length === 0) {
+      form.setError('token', {
+        type: 'manual',
+        message: 'Please enter your token',
+      })
+      return
+    }
 
     setIsSubmitting(true)
     try {
-      const { updateError } = await updateAccountProviderProfile(fullName)
+      const { updateError } = await updateAccountProviderProfile(fullName, token)
       if (updateError) {
         throw new Error(updateError.message ?? 'Failed to update profile')
       }
@@ -133,6 +148,22 @@ export function CompleteProfile({ redirectTo }: CompleteProfileProps) {
       setIsSubmitting(false)
     }
   }
+
+  const handleCancel = useCallback(async () => {
+    setIsCancelling(true)
+    try {
+      await signOut()
+    } catch (_error) {
+      // Ignore sign-out errors and continue clean-up.
+    } finally {
+      resetAuth()
+      setIsCancelling(false)
+      navigate({
+        to: '/sign-in',
+        replace: true,
+      })
+    }
+  }, [navigate, resetAuth, signOut])
 
   if (isAuthLoading || !supabaseUser) {
     return (
@@ -175,16 +206,55 @@ export function CompleteProfile({ redirectTo }: CompleteProfileProps) {
                   </FormItem>
                 )}
               />
-              <Button className='w-full' type='submit' disabled={isSubmitting}>
-                {isSubmitting ? (
-                  <span className='flex items-center justify-center gap-2'>
-                    <Loader2 className='size-4 animate-spin' aria-hidden='true' />
-                    Saving…
-                  </span>
-                ) : (
-                  'Save and continue'
+              <FormField
+                control={form.control}
+                name='token'
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Invitation token</FormLabel>
+                    <FormControl>
+                      <Input
+                        autoComplete='off'
+                        placeholder='AWKB_Oeh767XNdsGmn7JV2FbsDIN-ApfdQ-Eul9pvBfuSYrCO8wn_yLk7GipT6hatnaQPrU6Q2jFKO0Hp4QK3qpRsbtSeuQywIWstgBkG0tilzrfKf90Rd4QAc8A0JvpL3N5Y3JxUik7cLsWixlvQI7ySiQ3UnS2L9WoEME5jLh-hw'
+                        {...field}
+                      />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
                 )}
-              </Button>
+              />
+              <div className='flex flex-col gap-2'>
+                <Button
+                  className='w-full'
+                  type='submit'
+                  disabled={isSubmitting || isCancelling}
+                >
+                  {isSubmitting ? (
+                    <span className='flex items-center justify-center gap-2'>
+                      <Loader2 className='size-4 animate-spin' aria-hidden='true' />
+                      Saving…
+                    </span>
+                  ) : (
+                    'Save and continue'
+                  )}
+                </Button>
+                <Button
+                  type='button'
+                  variant='outline'
+                  className='w-full'
+                  onClick={handleCancel}
+                  disabled={isSubmitting || isCancelling}
+                >
+                  {isCancelling ? (
+                    <span className='flex items-center justify-center gap-2'>
+                      <Loader2 className='size-4 animate-spin' aria-hidden='true' />
+                      Cancelling…
+                    </span>
+                  ) : (
+                    'Cancel'
+                  )}
+                </Button>
+              </div>
             </form>
           </Form>
         </CardContent>
