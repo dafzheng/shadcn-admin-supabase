@@ -21,13 +21,13 @@ import {
   TableHeader,
   TableRow,
 } from '@/components/ui/table'
-import { type Segment } from '../data/schema'
 import { DataTableBulkActions } from './data-table-bulk-actions'
 import { DataTablePagination } from './data-table-pagination'
 import { DataTableToolbar } from './data-table-toolbar'
 import { segmentsColumns as columns } from './segments-columns'
 import { useSegments } from '../components/segments-provider'
 import { Loader2 } from 'lucide-react'
+import { SegmentsMap } from './segments-map'
 
 declare module '@tanstack/react-table' {
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
@@ -104,6 +104,7 @@ export function SegmentsTable({ search, navigate }: DataTableProps) {
   return (
     <div className='space-y-4 max-sm:has-[div[role="toolbar"]]:mb-16'>
       <DataTableToolbar table={table} />
+      <SegmentsMap />
       <div className='overflow-hidden rounded-md border'>
         <Table>
           <TableHeader>
