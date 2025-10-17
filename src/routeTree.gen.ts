@@ -32,6 +32,7 @@ import { Route as AuthenticatedTasksIndexRouteImport } from './routes/_authentic
 import { Route as AuthenticatedSettingsIndexRouteImport } from './routes/_authenticated/settings/index'
 import { Route as AuthenticatedSegmentsIndexRouteImport } from './routes/_authenticated/segments/index'
 import { Route as AuthenticatedPipelinesIndexRouteImport } from './routes/_authenticated/pipelines/index'
+import { Route as AuthenticatedNotificationsIndexRouteImport } from './routes/_authenticated/notifications/index'
 import { Route as AuthenticatedHelpCenterIndexRouteImport } from './routes/_authenticated/help-center/index'
 import { Route as AuthenticatedEmailsIndexRouteImport } from './routes/_authenticated/emails/index'
 import { Route as AuthenticatedChatsIndexRouteImport } from './routes/_authenticated/chats/index'
@@ -162,6 +163,12 @@ const AuthenticatedPipelinesIndexRoute =
     path: '/pipelines/',
     getParentRoute: () => AuthenticatedRouteRoute,
   } as any)
+const AuthenticatedNotificationsIndexRoute =
+  AuthenticatedNotificationsIndexRouteImport.update({
+    id: '/notifications/',
+    path: '/notifications/',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
 const AuthenticatedHelpCenterIndexRoute =
   AuthenticatedHelpCenterIndexRouteImport.update({
     id: '/help-center/',
@@ -241,6 +248,7 @@ export interface FileRoutesByFullPath {
   '/chats': typeof AuthenticatedChatsIndexRoute
   '/emails': typeof AuthenticatedEmailsIndexRoute
   '/help-center': typeof AuthenticatedHelpCenterIndexRoute
+  '/notifications': typeof AuthenticatedNotificationsIndexRoute
   '/pipelines': typeof AuthenticatedPipelinesIndexRoute
   '/segments': typeof AuthenticatedSegmentsIndexRoute
   '/settings/': typeof AuthenticatedSettingsIndexRoute
@@ -273,6 +281,7 @@ export interface FileRoutesByTo {
   '/chats': typeof AuthenticatedChatsIndexRoute
   '/emails': typeof AuthenticatedEmailsIndexRoute
   '/help-center': typeof AuthenticatedHelpCenterIndexRoute
+  '/notifications': typeof AuthenticatedNotificationsIndexRoute
   '/pipelines': typeof AuthenticatedPipelinesIndexRoute
   '/segments': typeof AuthenticatedSegmentsIndexRoute
   '/settings': typeof AuthenticatedSettingsIndexRoute
@@ -308,6 +317,7 @@ export interface FileRoutesById {
   '/_authenticated/chats/': typeof AuthenticatedChatsIndexRoute
   '/_authenticated/emails/': typeof AuthenticatedEmailsIndexRoute
   '/_authenticated/help-center/': typeof AuthenticatedHelpCenterIndexRoute
+  '/_authenticated/notifications/': typeof AuthenticatedNotificationsIndexRoute
   '/_authenticated/pipelines/': typeof AuthenticatedPipelinesIndexRoute
   '/_authenticated/segments/': typeof AuthenticatedSegmentsIndexRoute
   '/_authenticated/settings/': typeof AuthenticatedSettingsIndexRoute
@@ -343,6 +353,7 @@ export interface FileRouteTypes {
     | '/chats'
     | '/emails'
     | '/help-center'
+    | '/notifications'
     | '/pipelines'
     | '/segments'
     | '/settings/'
@@ -375,6 +386,7 @@ export interface FileRouteTypes {
     | '/chats'
     | '/emails'
     | '/help-center'
+    | '/notifications'
     | '/pipelines'
     | '/segments'
     | '/settings'
@@ -409,6 +421,7 @@ export interface FileRouteTypes {
     | '/_authenticated/chats/'
     | '/_authenticated/emails/'
     | '/_authenticated/help-center/'
+    | '/_authenticated/notifications/'
     | '/_authenticated/pipelines/'
     | '/_authenticated/segments/'
     | '/_authenticated/settings/'
@@ -597,6 +610,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedPipelinesIndexRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
+    '/_authenticated/notifications/': {
+      id: '/_authenticated/notifications/'
+      path: '/notifications'
+      fullPath: '/notifications'
+      preLoaderRoute: typeof AuthenticatedNotificationsIndexRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
     '/_authenticated/help-center/': {
       id: '/_authenticated/help-center/'
       path: '/help-center'
@@ -695,6 +715,7 @@ interface AuthenticatedRouteRouteChildren {
   AuthenticatedChatsIndexRoute: typeof AuthenticatedChatsIndexRoute
   AuthenticatedEmailsIndexRoute: typeof AuthenticatedEmailsIndexRoute
   AuthenticatedHelpCenterIndexRoute: typeof AuthenticatedHelpCenterIndexRoute
+  AuthenticatedNotificationsIndexRoute: typeof AuthenticatedNotificationsIndexRoute
   AuthenticatedPipelinesIndexRoute: typeof AuthenticatedPipelinesIndexRoute
   AuthenticatedSegmentsIndexRoute: typeof AuthenticatedSegmentsIndexRoute
   AuthenticatedTasksIndexRoute: typeof AuthenticatedTasksIndexRoute
@@ -711,6 +732,7 @@ const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedChatsIndexRoute: AuthenticatedChatsIndexRoute,
   AuthenticatedEmailsIndexRoute: AuthenticatedEmailsIndexRoute,
   AuthenticatedHelpCenterIndexRoute: AuthenticatedHelpCenterIndexRoute,
+  AuthenticatedNotificationsIndexRoute: AuthenticatedNotificationsIndexRoute,
   AuthenticatedPipelinesIndexRoute: AuthenticatedPipelinesIndexRoute,
   AuthenticatedSegmentsIndexRoute: AuthenticatedSegmentsIndexRoute,
   AuthenticatedTasksIndexRoute: AuthenticatedTasksIndexRoute,

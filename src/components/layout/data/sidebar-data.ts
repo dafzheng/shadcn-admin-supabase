@@ -70,6 +70,11 @@ export const sidebarData: SidebarData = {
           url: '/pipelines',
           icon: NotebookText,
         },
+        {
+          title: 'Notifications',
+          url: '/notifications',
+          icon: Bell,
+        },
         // {
         //   title: 'Tasks',
         //   url: '/tasks',

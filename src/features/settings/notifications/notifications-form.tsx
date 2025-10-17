@@ -201,19 +201,16 @@ export function NotificationsForm() {
                 </FormLabel>
                 <FormDescription>
                   You can manage your mobile notifications in the{' '}
-                  <Link
-                    to='/settings'
-                    className='underline decoration-dashed underline-offset-4 hover:decoration-solid'
-                  >
+                  <Link to='.' className='font-semibold underline'>
                     mobile settings
-                  </Link>{' '}
-                  page.
+                  </Link>
+                  .
                 </FormDescription>
               </div>
             </FormItem>
           )}
         />
-        <Button type='submit'>Update notifications</Button>
+        <Button type='submit'>Save changes</Button>
       </form>
     </Form>
   )
