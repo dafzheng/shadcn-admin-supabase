@@ -1,6 +1,7 @@
 import { getRouteApi } from '@tanstack/react-router'
 import { ConfigDrawer } from '@/components/config-drawer'
 import { Header } from '@/components/layout/header'
+import { HeaderNotificationsMenu } from '@/components/layout/header-notifications-menu'
 import { Main } from '@/components/layout/main'
 import { ProfileDropdown } from '@/components/profile-dropdown'
 import { Search } from '@/components/search'
@@ -22,6 +23,7 @@ export function Emails() {
         <Search />
         <div className='ms-auto flex items-center space-x-4'>
           <ThemeSwitch />
+          <HeaderNotificationsMenu />
           <ConfigDrawer />
           <ProfileDropdown />
         </div>

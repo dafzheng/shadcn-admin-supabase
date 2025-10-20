@@ -239,6 +239,12 @@ export const sidebarData: SidebarData = {
           url: '/help-center',
           icon: HelpCircle,
         },
+        {
+          title: 'CRM',
+          url: 'https://crm.salesbay.ai/',
+          icon: Command,
+          external: true,
+        },
       ],
     },
   ],
