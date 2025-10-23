@@ -17,11 +17,20 @@ export const notificationReadStates = [
   { label: 'Read', value: 'read', icon: CheckCircle2 },
 ]
 
+export type NotificationScope = 'global' | 'organization' | 'user'
+
+export const notificationScopes: Array<{
+  label: string
+  value: NotificationScope
+}> = [
+  { label: 'Global', value: 'global' },
+  { label: 'Organization', value: 'organization' },
+  { label: 'Direct', value: 'user' },
+]
+
 export function getNotificationLevelMeta(level: AppNotification['level']) {
   return notificationLevels.find((option) => option.value === level)
 }
-
-export type NotificationScope = 'global' | 'organization' | 'user'
 
 export function resolveNotificationScope(notification: AppNotification): NotificationScope {
   if (notification.userId) return 'user'

@@ -215,7 +215,7 @@ export function CompleteProfile({ redirectTo }: CompleteProfileProps) {
                     <FormControl>
                       <Input
                         autoComplete='off'
-                        placeholder='AWKB_Oeh767XNdsGmn7JV2FbsDIN-ApfdQ-Eul9pvBfuSYrCO8wn_yLk7GipT6hatnaQPrU6Q2jFKO0Hp4QK3qpRsbtSeuQywIWstgBkG0tilzrfKf90Rd4QAc8A0JvpL3N5Y3JxUik7cLsWixlvQI7ySiQ3UnS2L9WoEME5jLh-hw'
+                        placeholder=''
                         {...field}
                       />
                     </FormControl>

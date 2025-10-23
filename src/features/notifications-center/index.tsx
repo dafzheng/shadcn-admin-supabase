@@ -6,6 +6,7 @@ import { ProfileDropdown } from '@/components/profile-dropdown'
 import { Search } from '@/components/search'
 import { ThemeSwitch } from '@/components/theme-switch'
 import { NotificationsTable } from './components/notifications-table'
+import { NotificationsPrimaryButtons } from './components/notifications-primary-buttons'
 
 export function NotificationsCenter() {
   return (
@@ -28,6 +29,7 @@ export function NotificationsCenter() {
               Stay on top of broadcast updates that your organization shares in real time.
             </p>
           </div>
+          <NotificationsPrimaryButtons />
         </div>
         <div className='-mx-4 flex-1 overflow-auto px-4 py-1'>
           <NotificationsTable />
