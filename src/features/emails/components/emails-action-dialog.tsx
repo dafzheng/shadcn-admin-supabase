@@ -23,11 +23,11 @@ import {
 } from '@/components/ui/form'
 import { Input } from '@/components/ui/input'
 import { Email, EmailForm, emailFormSchema } from '../data/schema'
-import { useState, useRef } from "react";
+import { useState, useRef } from 'react'
 
 import { upsertEmail } from '../api/email'
 import { useEmails } from './emails-provider'
-import { useGrapesEditor } from '../hook/use-grapes-editor'
+import { useGrapesStudioEditor } from '../hook/use-grapes-studio-editor'
 import { EXPORT_CSS } from '../data/data'
 
 type EmailActionDialogProps = {
@@ -46,10 +46,12 @@ export function EmailsActionDialog({
   const { refetchEmails } = useEmails()
   const [loading, setLoading] = useState(false)
   const containerRef = useRef<HTMLDivElement | null>(null)
-  const editorRef = useGrapesEditor(open, containerRef, currentRow, {
-    prefix: 'email/',     // 可留空或指定子目錄
-    useSignedUrl: false,    // 私有桶改 true
+  const studioLicenseKey = import.meta.env.VITE_GRAPESJS_STUDIO_LICENSE_KEY
+  const { editorRef } = useGrapesStudioEditor(open, containerRef, currentRow, {
+    prefix: 'email/',
+    useSignedUrl: false,
     signedExpires: 600,
+    licenseKey: studioLicenseKey,
   })
 
   const form = useForm<EmailForm>({
@@ -114,7 +116,7 @@ export function EmailsActionDialog({
       }}
     >
       <DialogContent
-        className='sm:max-w-[1200px] h-[90vh]'
+        className='sm:max-w-[1200px] h-[90vh] z-[120]'
         onInteractOutside={(e) => e.preventDefault()}
       >
         <DialogHeader className='text-left'>
@@ -124,19 +126,19 @@ export function EmailsActionDialog({
             Click save when you&apos;re done.
           </DialogDescription>
         </DialogHeader>
-        {/* <div className='-mr-4 h-[26.25rem] w-full overflow-y-auto py-1 pr-4'> */}
-        <div className="h-[calc(90vh-120px)] overflow-y-auto">
-          <Form {...form}>
-            <form
-              id='email-form'
-              onSubmit={form.handleSubmit(onSubmit)}
-              // onSubmit={form.handleSubmit((data) => {
-              //   console.log("valid data", data)
-              // }, (errors) => {
-              //   console.error("invalid", errors)
-              // })}
-              className='space-y-4 p-0.5'
-            >
+        <div className="h-[calc(90vh-120px)] flex flex-col">
+          <div className="overflow-y-auto shrink-0">
+            <Form {...form}>
+              <form
+                id='email-form'
+                onSubmit={form.handleSubmit(onSubmit)}
+                // onSubmit={form.handleSubmit((data) => {
+                //   console.log("valid data", data)
+                // }, (errors) => {
+                //   console.error("invalid", errors)
+                // })}
+                className='space-y-4 p-0.5'
+              >
               <FormField
                 control={form.control}
                 name='emailName'
@@ -199,9 +201,12 @@ export function EmailsActionDialog({
               />
 
 
-            </form>
-          </Form>
-          <div ref={containerRef} className="w-full h-full mt-4" />
+              </form>
+            </Form>
+          </div>
+          <div className="mt-4 flex-1 overflow-visible min-h-[20rem]">
+            <div ref={containerRef} className="h-full w-full" />
+          </div>
         </div>
         <DialogFooter>
           <Button disabled={loading} type='submit' form='email-form'>

@@ -5,7 +5,6 @@ import { LayoutProvider } from '@/context/layout-provider'
 import { SearchProvider } from '@/context/search-provider'
 import { SidebarInset, SidebarProvider } from '@/components/ui/sidebar'
 import { AppSidebar } from '@/components/layout/app-sidebar'
-import { SkipToMain } from '@/components/skip-to-main'
 import { NotificationsListener } from '@/features/notifications/components/notifications-listener'
 
 type AuthenticatedLayoutProps = {
@@ -18,7 +17,6 @@ export function AuthenticatedLayout({ children }: AuthenticatedLayoutProps) {
     <SearchProvider>
       <LayoutProvider>
         <SidebarProvider defaultOpen={defaultOpen}>
-          <SkipToMain />
           <NotificationsListener />
           <AppSidebar />
           <SidebarInset
