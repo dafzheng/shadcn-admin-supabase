@@ -57,6 +57,12 @@ export function ProfileDropdown() {
                 <DropdownMenuShortcut>⌘S</DropdownMenuShortcut>
               </Link>
             </DropdownMenuItem>
+            <DropdownMenuItem asChild>
+              <Link to='/workspace'>
+                Workspace
+                <DropdownMenuShortcut>⌘W</DropdownMenuShortcut>
+              </Link>
+            </DropdownMenuItem>
             <DropdownMenuItem>New Team</DropdownMenuItem>
           </DropdownMenuGroup>
           <DropdownMenuSeparator />
